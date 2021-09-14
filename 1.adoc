@@ -1,0 +1,302 @@
+1. Building Abstractions with Procedures
+========================================
+
+1.1 The Elements of Programming
+-------------------------------
+
+Every powerful language has three mechanisms for combining simple ideas
+to form more complex ones:
+
+primitive expressions::
+  which represent the simplest entities the language is concerned with
+means of combination::
+  by which compound elements are built from simpler ones
+means of abstraction::
+  by which compound elements can be named and manipulated as units
+
+In programming, we deal with two kinds of elements: procedures and data.
+(Later we will discover that they are really not so distinct.)
+
+1.1.1 Expressions 
+~~~~~~~~~~~~~~~~~~
+
+To apply procedures to expressions, scheme recognises a space delimited
+list of expressions, with the leftmost element being the procedure name,
+all enclosed in parantheses.
+
+operator::
+  The leftmost element
+operands::
+  The other elements
+
+E.g.
+
+[source,scheme]
+----
+(+ 21 35 12 7)
+----
+
+75
+
+1.1.2 Naming and the Environment 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Name objects using the `define` operator with a name and an expression
+
+e.g.
+
+[source,scheme]
+----
+(define pi 3.14159)
+----
+
+1.1.4 Compound Procedures 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Procedures are defined in scheme with the following syntax:
+
+[source,scheme]
+----
+(define (<NAME> <FORMAL PARAMETERS>) <BODY>)
+----
+
+e.g.
+
+[source,scheme]
+----
+(define (square x) (* x x))
+----
+
+1.1.5 The Substitution Model for Procedure Application 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Substitution Model::
+  To apply a compound procedure to arguments,
+
+evaluate the body of the procedure with each formal parameter replaced
+by the corresponding argument.
+
+Applicative Order Evaluation::
+  Interpreter first evaluates
+
+operator and operands, then applies the resulting procedure to the
+resulting arguments. This is a recursive model, evaluating at each step.
+This is equivalent to the substitution model, and is the procedure that
+the scheme interpreter uses.
+
+Normal Order Evaluation::
+  Interpreter substitutes operand
+
+expressions for parameters until obtaining an expression involving only
+primitive operators, then performing the evaluation. This model results
+in full expansion, then full contraction.
+
+1.1.6 Conditional Expressions and Predicates 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Perform case analysis using `cond`
+
+General form:
+
+[source,scheme]
+----
+(cond (P1 E1) (P2 E2) ... (PN EN))
+----
+
+Where P is a predicate with a true or false value, and E is evaluated
+and returned if P is true. Additionally, `else` can be used to represent
+`true`, as a final value
+
+e.g.
+
+[source,scheme]
+----
+(define (abs x) (cond ((< x 0) (- x)) (else x)))
+----
+
+`if` is a restricted form that is used for exactly two cases
+
+General form:
+
+[source,scheme]
+----
+(if <PREDICATE> <CONSEQUENT> <ALTERNATIVE>)
+----
+
+e.g.
+
+[source,scheme]
+----
+(define (abs x) (if (< x 0) (- x) x))
+----
+
+The predicates can be used with comparative operators `<`, `=`, and `>`,
+as well as the logical `and`, `or`, and `not`
+
+1.1.8 Procedures as Black-Box Abstractions 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Good coding form to use internal definitions as much as possible to
+avoid polluting the namespace
+
+1.2 Procedures and the Processes They Generate
+----------------------------------------------
+
+1.2.1 Linear Recursion and Iteration 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Recursion::
+  results in the memory-wise expansion of a procedure
+Iteration::
+  maintains constant space. The best way to achieve this is to
+
+have all necessary information to be passed to the arguments for the
+next iteration, returning nothing but the result of the procedure. Such
+information defines the iterative process, the information known as
+_state variables_. This typically implies that the recursive procedure
+is the last operation to be performed in the procedure, allowing
+optimisation known as _tail recursion_ to take place. Recursion is
+almost always undesirable, and is heuristically detectable by requiring
+an operation to be performed on the result returned by the recursive
+procedure.
+
+1.2.3 Orders of Growth 
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Let latexmath:[$R(n)$] be the amount of resources that the process
+requires for a problem of size n.
+
+We say that latexmath:[$R(n)$] has order of growth
+latexmath:[$\theta(f(n))$] (pronounced "theta of f(n)"), if there are
+positive constants latexmath:[$k_1$] and latexmath:[$k_2$] independent
+of latexmath:[$n$] such that
+
+latexmath:[\[k_1 f(n) <= R(n) <= k_2 f(n)\]]
+
+for any sufficiently large value of n.
+
+1.3 Formulating Abstractions with Higher-Order Procedures
+---------------------------------------------------------
+
+1.3.1 Procedures as Arguments 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Higher-Order Procedure::
+  Procedures that manipulate procedures
+Accumulate::
+  Combining a collection of terms using some general
+
+accumulation function:
+
+`(accumulate combiner null-value term a next b)`
+
+"Accumulate" takes as arguments the same term and range specifications
+as "sum" and "product", together with a "combiner" procedure (of two
+arguments) that specifies how the current term is to be combined with
+the accumulation of the preceding terms and a "null-value" that
+specifies what base value to use when the terms run out.
+
+Filtered-accumulate::
+  places a "filter" on the terms to be combined,
+
+combining only those terms derived from values in the range that satisfy
+a specified condition. It takes the same arguments as accumulate,
+together with an additional predicate of one argument that specifies the
+filter.
+
+1.3.2 Constructing Procedures Using `Lambda` 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Anonymous procedures are procedures that are not associated with any
+name in the environment, being declared with the general form:
+
+`(lambda (<FORMAL-PARAMETERS>) <BODY>)`
+
+e.g.
+
+`(lambda (x) (+ x 4))`
+
+==== `Let` ====
+
+`let` allows the creation of local variables within the environment. An
+example is most illustrative:
+
+suppose we wish to compute the function
+
+latexmath:[\[f(x,y) = x(1 + xy)^2 + y(1 - y) + (1 + xy)(1 - y)\]]
+
+which we could also express as
+
+latexmath:[\[a = 1 + xy\]] latexmath:[\[b = 1 - y\]]
+latexmath:[\[f(x,y) = xa^2 + yb + ab\]]
+
+It is useful to make use of latexmath:[$a$] and latexmath:[$b$] as local
+variables, which can be achieved by an auxiliary procedure:
+
+[source,scheme]
+----
+  (define (f x y)
+    (define (f-helper a b)
+      (+ (* x (square a))
+         (* y b)
+         (* a b)))
+(f-helper (+ 1 (* x y))
+              (- 1 y)))
+----
+
+Which in turn can be achieved with a lambda expression:
+
+[source,scheme]
+----
+  (define (f x y)
+((lambda (a b)
+   (+ (* x (square a))
+          (* y b)
+          (* a b)))
+ (+ 1 (* x y))
+ (- 1 y)))
+----
+
+Which is such a useful construct, a form called `let` is introduced to
+make it more convenient. Using `let`, the procedure could be written as:
+
+[source,scheme]
+----
+  (define (f x y)
+(let ((a (+ 1 (* x y)))
+          (b (- 1 y)))
+  (+ (* x (square a))
+         (* y b)
+         (* a b))))
+----
+
+The general form of a `let' expression is
+
+[source,scheme]
+----
+  (let ((<VAR1> <EXP1>)
+    (<VAR2> <EXP2>)
+    ...
+    (<VARN> <VARN>))
+<BODY>)
+----
+
+1.3.3 Procedures as General Methods 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A number x is called a "fixed point" of a function latexmath:[$f$] if x
+satisfies the equation latexmath:[$f(x) = x$]. For some functions
+latexmath:[$f$] we can locate a fixed point by beginning with an initial
+guess and applying f repeatedly.
+
+1.3.4 Procedures as Returned Values 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Elements with the fewest restrictions on computational manipulation are
+said to have "first-class" status. Some of the "rights and privileges"
+of first-class elements are:
+
+* They may be named by variables.
+* They may be passed as arguments to procedures.
+* They may be returned as the results of procedures.
+* They may be included in data structures.
