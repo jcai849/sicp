@@ -91,3 +91,61 @@
                 (point-dimension (end-segment (segment-dimension alt-rectangle)))))))
 (define height (alt-measure y-point y-segment))
 (define width (alt-measure x-point x-segment))
+
+; 2.4
+
+(define (proc-cons x y)
+    (lambda (m) (m x y)))
+(define (proc-car z)
+    (z (lambda (p q) p)))
+
+(define (proc-cdr z)
+    (z (lambda (p q) q)))
+
+(let ((x 1)
+      (y 2))
+    (display (proc-car (proc-cons x y)))
+    (newline)
+    (display (proc-car (lambda (m) (m x y))))
+    (newline)
+    (display ((lambda (m) (m x y)) (lambda (p q) p)))
+    (newline)
+    (display ((lambda (p q) p) x y))
+    (newline)
+    (display x)
+    (newline)
+    (display (proc-cdr (proc-cons x y))))
+
+; 2.5
+
+(define (expt b n)
+    (expt-iter b n 1))
+(define (expt-iter b counter product)
+    (if (= counter 0)
+        product
+        (expt-iter b
+                  (- counter 1)
+                  (* b product))))
+
+(define (parity? rem)
+    (lambda (n)
+        (= (remainder n 2) rem)))
+(define even? (parity? 0))
+(define odd? (parity? 1))
+(define (num-cons a b)
+    (* (expt 2 a)
+       (expt 3 b)))
+(define (mod-log divisor parity?)
+    (define (accumulator n count)
+                (if (and (parity? n) (> n 1))
+                    (accumulator (/ n divisor) (+ count 1))
+                    count))
+    accumulator)
+(define (num-car x)
+    (let ((mod-log2 (mod-log 2 even?)))
+         (mod-log2 x 0)))
+(define (num-cdr x)
+    (let ((mod-log3 (mod-log 3 odd?)))
+        (if (even? x)
+            (num-cdr (/ x 2))
+            (mod-log3 x 0))))
