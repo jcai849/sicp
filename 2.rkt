@@ -102,19 +102,19 @@
 (define (proc-cdr z)
     (z (lambda (p q) q)))
 
-(let ((x 1)
-      (y 2))
-    (display (proc-car (proc-cons x y)))
-    (newline)
-    (display (proc-car (lambda (m) (m x y))))
-    (newline)
-    (display ((lambda (m) (m x y)) (lambda (p q) p)))
-    (newline)
-    (display ((lambda (p q) p) x y))
-    (newline)
-    (display x)
-    (newline)
-    (display (proc-cdr (proc-cons x y))))
+; (let ((x 1)
+;       (y 2))
+;     (display (proc-car (proc-cons x y)))
+;     (newline)
+;     (display (proc-car (lambda (m) (m x y))))
+;     (newline)
+;     (display ((lambda (m) (m x y)) (lambda (p q) p)))
+;     (newline)
+;     (display ((lambda (p q) p) x y))
+;     (newline)
+;     (display x)
+;     (newline)
+;     (display (proc-cdr (proc-cons x y))))
 
 ; 2.5
 
@@ -149,3 +149,40 @@
         (if (even? x)
             (num-cdr (/ x 2))
             (mod-log3 x 0))))
+
+; 2.6
+
+(define zero (lambda (f) (lambda (x) x)))
+(define (add-1 n)
+    (lambda (f) (lambda (x) (f ((n f) x)))))
+
+; (add-1 zero)
+; (add-1 (lambda (f) (lambda (x) x)))
+; (lambda (f) (lambda (x) (f (((lambda (f) (lambda (x) x)) f) x))))
+; (lambda (f) (lambda (x) (f ((lambda (x) x) x))))
+; (lambda (f) (lambda (x) (f x)))
+
+(define one (lambda (f) (lambda (x) (f x))))
+
+; (add-1 one)
+; (add-1 (lambda (f) (lambda (x) (f x))))
+; (lambda (f) (lambda (x) (f (((lambda (f) (lambda (x) (f x))) f) x))))
+; (lambda (f) (lambda (x) (f ((lambda (x) (f x)) x))))
+; (lambda (f) (lambda (x) (f (f x))))
+
+(define two (lambda (f) (lambda (x) (f (f x)))))
+
+(define (church+ a b)
+    (lambda (f) (lambda (x) ((a f) ((b f) x)))))
+
+; (church+ two
+;          two)
+; (church+ (lambda (f) (lambda (x) (f (f x))))
+;          (lambda (f) (lambda (x) (f (f x)))))
+; (lambda (f) (lambda (x) (((lambda (f) (lambda (x) (f (f x)))) f)
+;                          (((lambda (f) (lambda (x) (f (f x)))) f) x))))
+; (lambda (f) (lambda (x) ((lambda (x) (f (f x)))
+;                              ((lambda (x) (f (f x))) x))))
+; (lambda (f) (lambda (x) ((lambda (x) (f (f x)))
+;                              (f (f x)))))
+; (lambda (f) (lambda (x) (f (f (f (f x))))))
