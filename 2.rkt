@@ -186,3 +186,25 @@
 ; (lambda (f) (lambda (x) ((lambda (x) (f (f x)))
 ;                              (f (f x)))))
 ; (lambda (f) (lambda (x) (f (f (f (f x))))))
+
+; 2.7
+
+(define (make-interval a b) (cons a b))
+(define (select-from-pair selector) (lambda (i) (selector (car i) (cdr i))))
+(define upper-bound (select-from-pair max))
+(define lower-bound (select-from-pair min))
+
+; 2.8
+
+(define (sub-interval x y)
+    (make-interval (- (lower-bound x) (upper-bound y))
+                   (- (upper-bound x) (lower-bound y))))
+
+; 2.9
+
+(define (width-interval i)
+    (/ (- (upper-bound i) (lower-bound i))
+       2))
+
+; (define a (make-interval 2 4))
+; (define b (make-interval 2 8))
